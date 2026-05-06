@@ -524,7 +524,18 @@ export function PlaygroundScreen() {
 
   return (
     <PlaygroundErrorBoundary fallback={<RouteFallback />}>
-      <div className="relative overflow-hidden" style={{ width: '100%', height: '100vh', minHeight: 640, background: '#07131a', color: 'white' }}>
+      <div
+        className="relative overflow-hidden"
+        style={{
+          width: '100%',
+          height: '100dvh',
+          minHeight: isNarrow ? 0 : 640,
+          background: '#07131a',
+          color: 'white',
+          overscrollBehavior: 'none',
+          touchAction: 'none',
+        }}
+      >
         <PlaygroundWorld3D
           worldId={world}
           onPortal={handlePortal}
@@ -682,8 +693,8 @@ export function PlaygroundScreen() {
         <button
           type="button"
           onClick={() => setMobileMenuOpen(true)}
-          className="pointer-events-auto fixed right-3 top-12 z-[72] rounded-full border border-white/15 bg-black/70 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-white shadow-xl backdrop-blur-xl md:hidden"
-          >
+          className="pointer-events-auto fixed right-3 top-[132px] z-[72] rounded-full border border-white/15 bg-black/70 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-white shadow-xl backdrop-blur-xl md:hidden"
+        >
           Menu
         </button>
         <PlaygroundHelpHud worldName={WORLD_META[world].name} />
@@ -1230,21 +1241,37 @@ function TransitionLoadingScreen({ active, worldName }: { active: boolean; world
 
 function PlaygroundHelpHud({ worldName }: { worldName: string }) {
   const [open, setOpen] = useState(false)
+  const [isTouch, setIsTouch] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mq = window.matchMedia('(hover: none) and (pointer: coarse)')
+    const sync = () => setIsTouch(mq.matches || 'ontouchstart' in window)
+    sync()
+    mq.addEventListener?.('change', sync)
+    return () => mq.removeEventListener?.('change', sync)
+  }, [])
+
   return (
     <div className="pointer-events-auto fixed left-1/2 top-3 z-[60] flex -translate-x-1/2 items-center gap-2">
-      <div className="rounded-full border border-white/10 bg-black/55 px-3 py-0.5 text-[10px] font-bold uppercase tracking-[0.22em] text-white/85 backdrop-blur-xl">
-        {worldName}
-      </div>
+      {!isTouch && (
+        <div className="rounded-full border border-white/10 bg-black/55 px-3 py-0.5 text-[10px] font-bold uppercase tracking-[0.22em] text-white/85 backdrop-blur-xl">
+          {worldName}
+        </div>
+      )}
       <button
         onClick={() => setOpen((value) => !value)}
-        className="flex h-6 w-6 items-center justify-center rounded-full border border-white/15 bg-black/55 text-[12px] font-bold text-white/80 hover:bg-white/10"
+        className="flex items-center justify-center rounded-full border border-white/15 bg-black/55 font-bold text-white/80 hover:bg-white/10"
+        style={{ width: isTouch ? 32 : 24, height: isTouch ? 32 : 24, fontSize: isTouch ? 14 : 12 }}
         title="Show controls"
       >
         ?
       </button>
       {open && (
-        <div className="rounded-xl border border-white/10 bg-black/85 px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-white/80 backdrop-blur-xl">
-          Click ground = walk · Click NPC = talk · WASD · Shift sprint · 1 Strike · 2 Dash · 3 Bolt · 4 Summon · E talk · J journal · M map · T chat · F focus · Drag mouse to rotate camera
+        <div className="rounded-xl border border-white/10 bg-black/85 px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-white/80 backdrop-blur-xl" style={{ maxWidth: isTouch ? 220 : 520 }}>
+          {isTouch
+            ? 'Left pad move · Right buttons talk/menu/map · Hold rotate puck to orbit camera'
+            : 'Click ground = walk · Click NPC = talk · WASD · Shift sprint · 1 Strike · 2 Dash · 3 Bolt · 4 Summon · E talk · J journal · M map · T chat · F focus · Drag mouse to rotate camera'}
         </div>
       )}
     </div>
@@ -1299,53 +1326,77 @@ function PlaygroundUtilityDock({
       await navigator.clipboard.writeText(window.location.href)
     } catch {}
   }
+  const [isTouch, setIsTouch] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mq = window.matchMedia('(hover: none) and (pointer: coarse)')
+    const sync = () => setIsTouch(mq.matches || 'ontouchstart' in window)
+    sync()
+    mq.addEventListener?.('change', sync)
+    return () => mq.removeEventListener?.('change', sync)
+  }, [])
+
   return (
-    <div className="pointer-events-auto fixed bottom-[78px] right-3 z-[70] flex flex-col gap-1.5">
+    <div
+      className="pointer-events-auto fixed right-3 z-[70] flex gap-1.5"
+      style={{
+        bottom: isTouch ? 300 : 78,
+        flexDirection: isTouch ? 'row' : 'column',
+      }}
+    >
       <button
         onClick={captureScreenshot}
-        className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-black/65 text-base text-cyan-100 backdrop-blur-xl hover:bg-cyan-400/20"
+        className="flex items-center justify-center rounded-xl border border-white/15 bg-black/65 text-cyan-100 backdrop-blur-xl hover:bg-cyan-400/20"
+        style={{ width: isTouch ? 36 : 40, height: isTouch ? 36 : 40, fontSize: isTouch ? 14 : 16 }}
         title="Screenshot the world (PNG)"
       >
         📸
       </button>
       <button
         onClick={toggleFullscreen}
-        className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-black/65 text-base text-cyan-100 backdrop-blur-xl hover:bg-cyan-400/20"
+        className="flex items-center justify-center rounded-xl border border-white/15 bg-black/65 text-cyan-100 backdrop-blur-xl hover:bg-cyan-400/20"
+        style={{ width: isTouch ? 36 : 40, height: isTouch ? 36 : 40, fontSize: isTouch ? 14 : 16 }}
         title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
       >
         {isFullscreen ? '⤢' : '⛶'}
       </button>
       <button
         onClick={copyShareLink}
-        className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-black/65 text-base text-cyan-100 backdrop-blur-xl hover:bg-cyan-400/20"
+        className="flex items-center justify-center rounded-xl border border-white/15 bg-black/65 text-cyan-100 backdrop-blur-xl hover:bg-cyan-400/20"
+        style={{ width: isTouch ? 36 : 40, height: isTouch ? 36 : 40, fontSize: isTouch ? 14 : 16 }}
         title="Copy share link"
       >
         🔗
       </button>
       <button
         onClick={onReplayNarration}
-        className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-black/65 text-base text-cyan-100 backdrop-blur-xl hover:bg-cyan-400/20"
+        className="flex items-center justify-center rounded-xl border border-white/15 bg-black/65 text-cyan-100 backdrop-blur-xl hover:bg-cyan-400/20"
+        style={{ width: isTouch ? 36 : 40, height: isTouch ? 36 : 40, fontSize: isTouch ? 14 : 16 }}
         title="Replay world narration"
       >
         📢
       </button>
       <button
         onClick={onToggleNarration}
-        className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-black/65 text-base text-cyan-100 backdrop-blur-xl hover:bg-cyan-400/20"
+        className="flex items-center justify-center rounded-xl border border-white/15 bg-black/65 text-cyan-100 backdrop-blur-xl hover:bg-cyan-400/20"
+        style={{ width: isTouch ? 36 : 40, height: isTouch ? 36 : 40, fontSize: isTouch ? 14 : 16 }}
         title={narrationMuted ? 'Unmute narration' : 'Mute narration'}
       >
         {narrationMuted ? '🔇' : '🗣️'}
       </button>
       <button
         onClick={onToggleAudio}
-        className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-black/65 text-base text-cyan-100 backdrop-blur-xl hover:bg-cyan-400/20"
+        className="flex items-center justify-center rounded-xl border border-white/15 bg-black/65 text-cyan-100 backdrop-blur-xl hover:bg-cyan-400/20"
+        style={{ width: isTouch ? 36 : 40, height: isTouch ? 36 : 40, fontSize: isTouch ? 14 : 16 }}
         title={audioMuted ? 'Unmute audio' : 'Mute audio'}
       >
         {audioMuted ? '🔇' : '🔊'}
       </button>
       <button
         onClick={onCustomize}
-        className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-black/65 text-base text-cyan-100 backdrop-blur-xl hover:bg-cyan-400/20"
+        className="flex items-center justify-center rounded-xl border border-white/15 bg-black/65 text-cyan-100 backdrop-blur-xl hover:bg-cyan-400/20"
+        style={{ width: isTouch ? 36 : 40, height: isTouch ? 36 : 40, fontSize: isTouch ? 14 : 16 }}
         title="Customize avatar (C)"
       >
         👤
