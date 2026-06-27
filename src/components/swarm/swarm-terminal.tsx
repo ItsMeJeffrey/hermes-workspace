@@ -1,11 +1,11 @@
 'use client'
 
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
-import type { Terminal } from 'xterm'
-import type * as XtermModule from 'xterm'
-import type { FitAddon } from 'xterm-addon-fit'
-import type * as FitAddonModule from 'xterm-addon-fit'
-import type * as WebLinksAddonModule from 'xterm-addon-web-links'
+import type { Terminal } from '@xterm/xterm'
+import type * as XtermModule from '@xterm/xterm'
+import type { FitAddon } from '@xterm/addon-fit'
+import type * as FitAddonModule from '@xterm/addon-fit'
+import type * as WebLinksAddonModule from '@xterm/addon-web-links'
 import { cn } from '@/lib/utils'
 
 let xtermLoaded = false
@@ -16,11 +16,11 @@ let WebLinksAddonCtor: typeof WebLinksAddonModule.WebLinksAddon
 async function ensureXterm() {
   if (xtermLoaded) return
   const [xtermMod, fitMod, linksMod] = await Promise.all([
-    import('xterm'),
-    import('xterm-addon-fit'),
-    import('xterm-addon-web-links'),
+    import('@xterm/xterm'),
+    import('@xterm/addon-fit'),
+    import('@xterm/addon-web-links'),
   ])
-  await import('xterm/css/xterm.css')
+  await import('@xterm/xterm/css/xterm.css')
   TerminalCtor = xtermMod.Terminal
   FitAddonCtor = fitMod.FitAddon
   WebLinksAddonCtor = linksMod.WebLinksAddon
